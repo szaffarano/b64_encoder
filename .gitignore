@@ -1,0 +1,11 @@
+**/build
+**/iseconfig
+**/*~
+**/*.log
+**/*.hex
+**/*.fmt
+ip/ram_buffer/ram_buffer
+ip/ram_result/ram_result
+ip/**/tmp
+ip/**/_xmsgs
+ip/**/xlnx_auto_0_xdb
