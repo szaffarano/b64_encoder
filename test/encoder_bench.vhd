@@ -40,13 +40,13 @@ begin
       clk              => clk,
       rst              => rst,
       we               => we,
-      ain        => buff_addr,
-      din        => buff_data,
-      aout      => result_addr,
-      dout      => result_data,
+      ain              => buff_addr,
+      din              => buff_data,
+      aout             => result_addr,
+      dout             => result_data,
       bytes_to_process => bytes_to_process,
       processed_bytes  => processed_bytes,
-      ready        => processed);
+      ready            => processed);
 
   clock : process
   begin
@@ -58,15 +58,16 @@ begin
   end process clock;
 
   estimulo : process
-    constant cadena : string := "Hola mundo";
+    constant cadena : string := "01234";
   begin
     result_addr <= std_logic_vector(to_unsigned(89, result_addr'length));
 
     --
     -- Reset del device
     --
+    wait until rising_edge(clk);
     rst <= '1';
-    wait until clk'event and clk = '0';
+    wait until rising_edge(clk);
     rst <= '0';
 
     --
@@ -76,7 +77,7 @@ begin
     for i in 1 to cadena'length loop
       buff_addr <= std_logic_vector(to_unsigned(i-1, buff_addr'length));
       buff_data <= std_logic_vector(to_unsigned(character'pos(cadena(i)), buff_data'length));
-      wait until clk'event and clk = '0';
+      wait until rising_edge(clk);
     end loop;
 
     buff_addr <= (others => '-');
@@ -100,13 +101,13 @@ begin
     for i in 0 to 90 loop
       exit when i = processed_bytes;
       result_addr <= std_logic_vector(to_unsigned(i, result_addr'length));
-      wait until clk'event and clk = '0';
-      assert false                      --to_char(result_data) = cadena(i+1)
-        report "Comparando <" & cadena(i+1) & "> con <" & to_char(result_data) & ">"
-        severity note;                  --failure;
+      wait until rising_edge(clk);
+      --assert false                      --to_char(result_data) = cadena(i+1)
+      --  report "Comparando <" & cadena(i+1) & "> con <" & to_char(result_data) & ">"
+      --  severity note;                  --failure;
     end loop;
     result_addr <= (others => '-');
-    wait until clk'event and clk = '1';
+    wait until rising_edge(clk);
 
     report "### Test finalizado exitosamente";
     -- Detengo la simulacin

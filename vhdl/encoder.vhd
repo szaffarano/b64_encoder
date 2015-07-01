@@ -51,8 +51,8 @@ architecture arch of encoder is
   --
   -- Estados de la FSM
   --
-  type state is (idle, reading, processing, waiting, padding);
-  signal pr_state, nx_state : state;
+  type state is (idle, reading, processing, waiting, padding, ending);
+  signal current : state;
 
   --
   -- Señales del encoder
@@ -82,20 +82,20 @@ architecture arch of encoder is
   signal result_we    : std_logic_vector(0 downto 0);
 
   -- Señales internas al encoder
-  signal start : std_logic;
-  signal buffer_address: natural range 0 to 64;
-  signal result_address: natural range 0 to 89;
+  signal start   : std_logic;
+  signal count_a : natural range 0 to 63;
+  signal count_r : natural range 0 to 90;
 
 begin
   enc : b64_encoder port map (
-      clk   => clk,
-      rst   => b64_rst,
-      en    => b64_en,
-      we    => b64_we,
-      din   => b64_din,
-      busy  => b64_busy,
-      ready => b64_ready,
-      dout  => b64_dout);
+    clk   => clk,
+    rst   => b64_rst,
+    en    => b64_en,
+    we    => b64_we,
+    din   => b64_din,
+    busy  => b64_busy,
+    ready => b64_ready,
+    dout  => b64_dout);
 
   buff : ram_buffer port map (
     clka  => clk,
@@ -115,123 +115,82 @@ begin
     addrb => result_addrb,
     doutb => result_doutb);
 
-  --
-  -- Parte secuencial / "lower section" de la FSM (ver [Pedroni 2010])
-  --
   process(rst, clk)
   begin
     if rst = '1' then
-      --pr_state <= idle;
+      ready <= '0';
     elsif clk'event and clk = '1' then
-      pr_state <= nx_state;
+      case current is
+        when idle =>
+          if start = '1' then
+            result_we <= "0";
+            b64_we    <= '1';
+            b64_en    <= '1';
+            b64_rst   <= '0';
+            count_a   <= 0;
+            current   <= reading;
+          else
+            result_we <= "0";
+            b64_we    <= '0';
+            b64_en    <= '0';
+            b64_rst   <= '1';
+            current   <= idle;
+          end if;
+
+        when reading =>
+          if count_a = bytes_to_process then
+            b64_we <= '1';
+            result_we <= "1";
+            current <= padding;
+          else
+            b64_rst    <= '0';
+            b64_we     <= '0';
+            result_we  <= "0";
+            buff_addrb <= std_logic_vector(to_unsigned(count_a, buff_addrb'length));
+            current    <= processing;
+          end if;
+
+        when processing =>
+          result_we    <= "1";
+          b64_we       <= '1';
+          result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
+          count_r      <= count_r + 1;
+          current      <= waiting;
+
+        when waiting =>
+          b64_we <= '0';
+          if b64_busy = '0' then
+            count_a   <= count_a + 1;
+            current   <= reading;
+            result_we <= "0";
+          else
+            result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
+            count_r      <= count_r + 1;
+            result_we <= "1";
+            current      <= waiting;
+          end if;
+
+        when padding =>
+          b64_en       <= '0';
+          if b64_ready = '1' then
+            current <= ending;
+          else
+            result_we    <= "1";
+            b64_we       <= '1';
+            result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
+            count_r      <= count_r + 1;
+            current      <= padding;
+          end if;
+        when ending =>
+          result_we       <= "0";
+          processed_bytes <= count_r-1;
+          ready           <= '1';
+          current         <= idle;
+      end case;
+
     end if;
   end process;
 
-  --
-  -- Parte combinacional  / "upper section" de la FSM (ver [Pedroni 2010])
-  --
-  process(pr_state, start, buffer_address, result_address, b64_busy, b64_ready, bytes_to_process)
-  begin
-    case pr_state is
-      when idle =>
-        ready <= '1';
-
-        b64_rst <= '1';
-        b64_we <= '0';
-        b64_en <= '0';
-
-        buff_addrb <= (others => '-');
-
-        result_we <= "0";
-        result_addra <= (others => '0');
-
-        if start = '1' then
-          nx_state <= reading;
-        else
-          nx_state <= idle;
-        end if;
-
-      when reading =>
-        ready <= '0';
-        
-        b64_rst <= '0';
-        b64_we <= '0';
-        b64_en <= '1';
-
-        result_we <= "0";
-        result_addra <= (others => '0');
-
-        if buffer_address < bytes_to_process then
-          buff_addrb <= std_logic_vector(to_unsigned(buffer_address, buff_addrb'length));
-          nx_state <= processing;
-        else
-          -- termino de procesar los bytes, continuar hasta b64_ready = '1'
-          nx_state <= padding;
-          buff_addrb <= (others => '-');
-        end if;
-
-      when processing =>
-        ready <= '0';
-
-        b64_we <= '1';
-        b64_rst <= '0';
-        b64_en <= '1';
-
-        buff_addrb <= (others => '-');
-
-        result_we <= "1";
-        result_addra <= std_logic_vector(to_unsigned(result_address, result_addra'length));
-
-        nx_state <= waiting;
-
-      when waiting =>
-        ready <= '0';
-
-        b64_we <= '1';
-        b64_rst <= '0';
-        b64_en <= '1';
-
-        buff_addrb <= (others => '-');
-
-        if b64_busy = '1' then
-          result_we <= "1";
-          result_addra <= std_logic_vector(to_unsigned(result_address, result_addra'length));
-          nx_state <= waiting;
-        elsif buffer_address < bytes_to_process then
-          result_we <= "1";
-          result_addra <= (others => '0');
-          nx_state <= reading;
-        else
-          result_we <= "1";
-          result_addra <= (others => '0');
-          nx_state <= padding;
-        end if;
-
-      when padding =>
-        ready <= '0';
-
-        b64_we <= '1';
-        b64_rst <= '0';
-        b64_en <= '0';
-        
-        buff_addrb <= (others => '-');
-
-        if b64_ready = '0' then
-          result_we <= "1";
-          result_addra <= std_logic_vector(to_unsigned(result_address, result_addra'length));
-          nx_state <= padding;
-        else
-          result_we <= "0";
-          result_addra <= (others => '0');
-          nx_state <= idle;
-        end if;
-    end case;
-  end process;
-
-  --
-  -- Monitorea el cambio de estado del registro de bytes a procesar
-  -- para activar el flag que inicia a la FSM.
-  --
   process (clk, rst)
     variable prev_value : natural range 0 to 63 := 0;
   begin
@@ -247,34 +206,12 @@ begin
     end if;
   end process;
 
-  --
-  -- Mantiene actualizado el contador que se usa para escribir en el
-  -- buffer de salida, se pone a cero en el reset y se incrementa sólo
-  -- en el estado writing de la fsm.
-  --
-  process (clk, rst)
-  begin
-    if rst = '1' then
-    -- poner contador en cero
-      result_address <= 0;
-      buffer_address <= 0;
-    elsif clk'event and clk = '1' then
-      if pr_state = reading then
-      -- incrementar contador de buffer address
-        buffer_address <= buffer_address + 1;
-      elsif pr_state = processing or pr_state = waiting or pr_state = padding then
-        result_address <= result_address + 1;
-      end if;
-    end if;
-  end process;
-
   b64_din     <= buff_doutb;
   result_dina <= b64_dout;
 
-  buff_addra <= ain;
-  buff_dina <= din;
+  buff_addra   <= ain;
+  buff_dina    <= din;
   result_addrb <= aout;
-  dout <= result_doutb;
-  buff_we <= "1" when we = '1' else "0";
-  processed_bytes <= result_address;
+  dout         <= result_doutb;
+  buff_we      <= "1" when we = '1' else "0";
 end architecture;

@@ -100,7 +100,7 @@ begin
   end process clock;
 
   process
-    constant msg: string := "Ho";
+    constant msg: string := "Hola mundo";
     variable counter: natural range 0 to 90 := 0;
   begin
     buff_we <= "1";
@@ -119,23 +119,29 @@ begin
       wait until rising_edge(clk);
     end loop;
 
-    buff_addra <= (others => '-');
-    buff_dina <= (others => '-');
-    buff_we <= "0";
-    result_we <= "1";
-    wait until rising_edge(clk);
-
     --------------------------------------------------------------------------
     -- Lógica para leer del buffer y escribir en result
     --------------------------------------------------------------------------
 
+    b64_we <= '0';
+    b64_en <= '0';
+    result_we <= "0";
+    b64_rst <= '1';
+    wait until rising_edge(clk);
+
+    buff_addra <= (others => '-');
+    buff_dina <= (others => '-');
+    buff_we <= "0";
+    result_we <= "1";
     b64_en <= '1';
     b64_we <= '1';  
+    b64_rst <= '0';
     wait until rising_edge(clk);
 
 
     -- recorre todos los bytes de "msg"
     for i in 1 to msg'length loop
+      b64_rst <= '0';
       b64_we <= '0';
       result_we <= "0";
       buff_addrb <= std_logic_vector(to_unsigned(i-1, buff_addrb'length));

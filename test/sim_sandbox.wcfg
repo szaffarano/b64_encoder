@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/sebas/Develop/fpga/b64_encoder/build/sandbox_isim_beh1.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="b64_utils" />
+            <top_module name="numeric_std" />
+            <top_module name="sandbox" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_textio" />
+            <top_module name="std_logic_unsigned" />
+            <top_module name="textio" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="16" />
+   <wvobject fp_name="/sandbox/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/buff_addra" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">buff_addra[5:0]</obj_property>
+      <obj_property name="ObjectShortName">buff_addra[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/buff_dina" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">buff_dina[7:0]</obj_property>
+      <obj_property name="ObjectShortName">buff_dina[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/buff_addrb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">buff_addrb[5:0]</obj_property>
+      <obj_property name="ObjectShortName">buff_addrb[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/buff_doutb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">buff_doutb[7:0]</obj_property>
+      <obj_property name="ObjectShortName">buff_doutb[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/enc/din" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">din[7:0]</obj_property>
+      <obj_property name="ObjectShortName">din[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/enc/prev" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">prev[5:0]</obj_property>
+      <obj_property name="ObjectShortName">prev[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/b64_rst" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_rst</obj_property>
+      <obj_property name="ObjectShortName">b64_rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/b64_en" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_en</obj_property>
+      <obj_property name="ObjectShortName">b64_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/b64_we" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_we</obj_property>
+      <obj_property name="ObjectShortName">b64_we</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/b64_dout" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_dout[7:0]</obj_property>
+      <obj_property name="ObjectShortName">b64_dout[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/b64_din" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_din[7:0]</obj_property>
+      <obj_property name="ObjectShortName">b64_din[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/b64_busy" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_busy</obj_property>
+      <obj_property name="ObjectShortName">b64_busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/b64_ready" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_ready</obj_property>
+      <obj_property name="ObjectShortName">b64_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/enc/pr_state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">pr_state</obj_property>
+      <obj_property name="ObjectShortName">pr_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sandbox/result_doutb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">result_doutb[7:0]</obj_property>
+      <obj_property name="ObjectShortName">result_doutb[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+</wave_config>
