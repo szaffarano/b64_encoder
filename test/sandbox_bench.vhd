@@ -39,25 +39,25 @@ architecture sandbox of sandbox is
       doutb : out std_logic_vector(7 downto 0));
   end component;
 
-  signal clk          : std_logic := '0';
+  signal clk : std_logic := '0';
 
   signal b64_rst, b64_en, b64_we : std_logic;
-  signal b64_busy             : std_logic;
-  signal b64_din              : std_logic_vector(7 downto 0);
-  signal b64_ready            : std_logic;
-  signal b64_dout             : std_logic_vector(7 downto 0);
-  
-  signal buff_addra   : std_logic_vector(5 downto 0);
-  signal buff_addrb   : std_logic_vector(5 downto 0);
-  signal buff_dina    : std_logic_vector(7 downto 0);
-  signal buff_doutb   : std_logic_vector(7 downto 0);
-  signal buff_we      : std_logic_vector(0 downto 0);
+  signal b64_busy                : std_logic;
+  signal b64_din                 : std_logic_vector(7 downto 0);
+  signal b64_ready               : std_logic;
+  signal b64_dout                : std_logic_vector(7 downto 0);
 
-  signal result_addra   : std_logic_vector(6 downto 0);
-  signal result_addrb   : std_logic_vector(6 downto 0);
-  signal result_dina    : std_logic_vector(7 downto 0);
-  signal result_doutb   : std_logic_vector(7 downto 0);
-  signal result_we      : std_logic_vector(0 downto 0);
+  signal buff_addra : std_logic_vector(5 downto 0);
+  signal buff_addrb : std_logic_vector(5 downto 0);
+  signal buff_dina  : std_logic_vector(7 downto 0);
+  signal buff_doutb : std_logic_vector(7 downto 0);
+  signal buff_we    : std_logic_vector(0 downto 0);
+
+  signal result_addra : std_logic_vector(6 downto 0);
+  signal result_addrb : std_logic_vector(6 downto 0);
+  signal result_dina  : std_logic_vector(7 downto 0);
+  signal result_doutb : std_logic_vector(7 downto 0);
+  signal result_we    : std_logic_vector(0 downto 0);
 
   signal clk_en : std_logic := '1';
 begin
@@ -100,11 +100,11 @@ begin
   end process clock;
 
   process
-    constant msg: string := "Hola mundo";
-    variable counter: natural range 0 to 90 := 0;
+    constant msg     : string                := "Hola mundo";
+    variable counter : natural range 0 to 90 := 0;
   begin
     buff_we <= "1";
-    
+
     b64_rst <= '1';
     wait until rising_edge(clk);
     b64_rst <= '0';
@@ -115,7 +115,7 @@ begin
 
     for i in 1 to msg'length loop
       buff_addra <= std_logic_vector(to_unsigned(i-1, buff_addra'length));
-      buff_dina <= std_logic_vector(to_unsigned(character'pos(msg(i)), buff_dina'length));
+      buff_dina  <= std_logic_vector(to_unsigned(character'pos(msg(i)), buff_dina'length));
       wait until rising_edge(clk);
     end loop;
 
@@ -123,35 +123,35 @@ begin
     -- Lógica para leer del buffer y escribir en result
     --------------------------------------------------------------------------
 
-    b64_we <= '0';
-    b64_en <= '0';
+    b64_we    <= '0';
+    b64_en    <= '0';
     result_we <= "0";
-    b64_rst <= '1';
+    b64_rst   <= '1';
     wait until rising_edge(clk);
 
     buff_addra <= (others => '-');
-    buff_dina <= (others => '-');
-    buff_we <= "0";
-    result_we <= "1";
-    b64_en <= '1';
-    b64_we <= '1';  
-    b64_rst <= '0';
+    buff_dina  <= (others => '-');
+    buff_we    <= "0";
+    result_we  <= "1";
+    b64_en     <= '1';
+    b64_we     <= '1';
+    b64_rst    <= '0';
     wait until rising_edge(clk);
 
 
     -- recorre todos los bytes de "msg"
     for i in 1 to msg'length loop
-      b64_rst <= '0';
-      b64_we <= '0';
-      result_we <= "0";
+      b64_rst    <= '0';
+      b64_we     <= '0';
+      result_we  <= "0";
       buff_addrb <= std_logic_vector(to_unsigned(i-1, buff_addrb'length));
       wait until rising_edge(clk);
 
       -- procesa un byte
-      result_we <= "1";
-      b64_we <= '1';
+      result_we    <= "1";
+      b64_we       <= '1';
       result_addra <= std_logic_vector(to_unsigned(counter, result_addra'length));
-      counter := counter +1;
+      counter      := counter +1;
       wait until rising_edge(clk);
 
       -- espera a que no este busy para procesar el siguiente byte
@@ -159,7 +159,7 @@ begin
         exit when b64_busy = '0';
 
         result_addra <= std_logic_vector(to_unsigned(counter, result_addra'length));
-        counter := counter +1;
+        counter      := counter +1;
         wait until clk'event and clk = '1';
       end loop;
     end loop;
@@ -168,13 +168,13 @@ begin
     for j in 0 to 3 loop
       exit when b64_ready = '1';
 
-      b64_en <= '0';
-      b64_we <= '1';
+      b64_en       <= '0';
+      b64_we       <= '1';
       result_addra <= std_logic_vector(to_unsigned(counter, result_addra'length));
-      counter := counter + 1;
+      counter      := counter + 1;
       wait until clk'event and clk = '1';
     end loop;
-    
+
     result_we <= "0";
 
     --------------------------------------------------------------------------
@@ -189,7 +189,7 @@ begin
 
     clk_en <= '0';
   end process;
-    
-  b64_din <= buff_doutb;
+
+  b64_din     <= buff_doutb;
   result_dina <= b64_dout;
 end architecture;

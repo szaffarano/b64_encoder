@@ -51,7 +51,7 @@ architecture arch of encoder is
   --
   -- Estados de la FSM
   --
-  type state is (idle, readb, encodeb, padding, ending);
+  type state is (idle, reading, encoding, padding, ending);
   signal current : state;
 
   --
@@ -134,7 +134,7 @@ begin
             b64_rst <= '0';
             count_a <= 0;
             count_r <= 0;
-            current <= readb;
+            current <= reading;
           else
             b64_we     <= '0';
             b64_en     <= '0';
@@ -143,7 +143,7 @@ begin
             current    <= idle;
           end if;
 
-        when readb =>
+        when reading =>
           b64_rst <= '0';
           b64_we  <= '1';
 
@@ -154,17 +154,17 @@ begin
               b64_we     <= '1';
             end if;
             result_we <= "0";
-            current   <= encodeb;
+            current   <= encoding;
           else
             current <= padding;
           end if;
 
-        when encodeb =>
+        when encoding =>
           b64_we       <= '0';
           result_we    <= "1";
           result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
           count_r      <= count_r+1;
-          current      <= readb;
+          current      <= reading;
 
         when padding =>
           b64_en <= '0';
