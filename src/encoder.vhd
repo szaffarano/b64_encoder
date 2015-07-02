@@ -142,7 +142,7 @@ begin
             buff_addrb <= (others => '-');
             current    <= idle;
           end if;
-
+          ready <= '0';
         when reading =>
           b64_rst <= '0';
           b64_we  <= '1';
@@ -177,7 +177,6 @@ begin
             current      <= padding;
           end if;
 
-
         when ending =>
           processed_bytes <= count_r-1;
           ready           <= '1';
@@ -190,7 +189,7 @@ begin
   end process;
 
   process (clk, rst)
-    variable prev_value : natural range 0 to 63 := 0;
+    variable prev_value : natural range 1 to 64;
   begin
     if rst = '1' then
       start <= '0';
