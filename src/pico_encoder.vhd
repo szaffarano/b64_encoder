@@ -198,8 +198,6 @@ begin
 
   -- Señales no usadas, se puentean para que ISE no de warnings...
   kcpsm6_sleep <= write_strobe and k_write_strobe;
-  interrupt    <= processed;
-
 
   -- Instanciar la ROM de PicoBlaze
   program_rom : pico_encoder_rom
@@ -351,4 +349,23 @@ begin
     end if;
   end process k_output_ports;
 
+  --
+  -- Manejo de interrupt e interrupt_ack por "closed loop"
+  -- Ver manual de KCPSM6.  Es para evitar perder una interrupción que está
+  -- alta menos de dos ciclos o durante sleep del procesador. 
+  --
+  interrupt_control : process(clk)
+  begin
+    if rising_edge(clk) then
+      if interrupt_ack = '1' then
+        interrupt <= '0';
+      else
+        if processed = '1' then
+          interrupt <= '1';
+        else
+          interrupt <= interrupt;
+        end if;
+      end if;
+    end if;
+  end process;
 end architecture;  -- arch
