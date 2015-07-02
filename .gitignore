@@ -1,4 +1,5 @@
-**/build
+!build/.placeholder
+build/*
 **/iseconfig
 **/*~
 **/*.log
