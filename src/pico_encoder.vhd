@@ -131,7 +131,7 @@ architecture arch of pico_encoder is
   signal write_strobe   : std_logic;
   signal k_write_strobe : std_logic;
   signal read_strobe    : std_logic;
-  signal interrupt      : std_logic;
+  signal interrupt      : std_logic := '0';
   signal interrupt_ack  : std_logic;
   signal kcpsm6_sleep   : std_logic;
   signal kcpsm6_reset   : std_logic;
@@ -290,7 +290,8 @@ begin
         when "11" =>
           in_port <= result_data;
 
-        when others => in_port <= "XXXXXXXX";
+        when others => 
+          in_port <= "XXXXXXXX";
       end case;
 
       -- Mandar un pulso a buffer_read para indicarle a la UART que se
@@ -368,4 +369,4 @@ begin
       end if;
     end if;
   end process;
-end architecture;  -- arch
+end architecture;
