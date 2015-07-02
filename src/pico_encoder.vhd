@@ -27,8 +27,8 @@ architecture arch of pico_encoder is
       din              : in  std_logic_vector(7 downto 0);
       aout             : in  std_logic_vector(6 downto 0);
       dout             : out std_logic_vector(7 downto 0);
-      bytes_to_process : in  natural range 0 to 63;
-      processed_bytes  : out natural range 0 to 90;
+      bytes_to_process : in  natural range 1 to 64;
+      processed_bytes  : out natural range 1 to 90;
       ready            : out std_logic);
   end component;
 
@@ -108,7 +108,7 @@ architecture arch of pico_encoder is
   -- Señales
   ------------------------------------------------------------------------------
   -- Señales del encoder
-  signal rst               : std_logic;
+  signal rst              : std_logic;
   signal we               : std_logic;
   signal buff_addr        : std_logic_vector(5 downto 0);
   signal buff_data        : std_logic_vector(7 downto 0);
@@ -198,7 +198,7 @@ begin
 
   -- Señales no usadas, se puentean para que ISE no de warnings...
   kcpsm6_sleep <= write_strobe and k_write_strobe;
-  interrupt    <= interrupt_ack;
+  interrupt    <= processed;
 
 
   -- Instanciar la ROM de PicoBlaze
@@ -268,27 +268,29 @@ begin
 
   ------------------------------------------------------------------------------
   -- Manejo de puertos de Entrada
-  --  Puerto 0x0: Estado de la UART
-  --  Puerto 0x1: Lectura del buffer de la UART
+  -- Ver archivo Readme.md
   ------------------------------------------------------------------------------
   input_ports : process(clk)
   begin
     if clk'event and clk = '1' then
       case port_id(1 downto 0) is
 
-        -- 0: Puerto estado de la UART
-        --    [0]: TX data present
-        --    [1]: TX half full
-        --    [2]: TX full
-        --    [3]: RX data present
-        --    [4]: RX half full
-        --    [5]: Rx full
-        when "00" => in_port(0) <= uart_tx_data_present;
-                     in_port(1) <= uart_tx_half_full;
-                     in_port(2) <= uart_tx_full;
-                     in_port(3) <= uart_rx_data_present;
-                     in_port(4) <= uart_rx_half_full;
-                     in_port(5) <= uart_rx_full;
+        when "00" =>
+          in_port(0) <= uart_tx_data_present;
+          in_port(1) <= uart_tx_half_full;
+          in_port(2) <= uart_tx_full;
+          in_port(3) <= uart_rx_data_present;
+          in_port(4) <= uart_rx_half_full;
+          in_port(5) <= uart_rx_full;
+
+        when "01" =>
+          in_port <= uart_rx_data_out;
+
+        when "10" =>
+          in_port <= std_logic_vector(to_unsigned(processed_bytes, in_port'length));
+
+        when "11" =>
+          in_port <= result_data;
 
         when others => in_port <= "XXXXXXXX";
       end case;
@@ -305,37 +307,48 @@ begin
 
   ------------------------------------------------------------------------------
   -- Manejo de puertos de Salida
-  --  Puerto 0x1: Escritura en la UART
-  --  Puerto 0x1 (constante / K): reseteo de la UART (optimizado al usar k_write).
-  --                              Ver manual de referencia del kcpsm6
-  --  Puerto 0x2: Puerto de control del buffer
-  --      [0:4]: Direcciones a escribir o leer en el buffer del encoder
-  --      [5:7]: Sin utilizar
-  --      [8]: Escritura (0) / Lectura (1)
-  --  Puerto 0x3: Escritura en el buffer del encoder
+  --  Ver archivo Readme.md en el proyecto
   ------------------------------------------------------------------------------
-
-  -- Reset de la uart, puerto 1 optimizado
   output_ports : process(clk)
   begin
-    if clk'event and clk = '1' then
+    if rising_edge(clk) then
       if write_strobe = '1' then
-        case port_id(1 downto 0) is
-          when "01" =>
+        case port_id(2 downto 0) is
+          when "001" =>
             uart_tx_data_in  <= out_port;
             write_to_uart_tx <= '1';
-          when others => write_to_uart_tx <= '0';
+          when "010" =>
+            rst <= out_port(0);
+            we  <= out_port(1);
+          when "011" =>
+            buff_addr <= out_port(5 downto 0);
+          when "100" =>
+            buff_data <= out_port;
+          when "101" =>
+            bytes_to_process <= to_integer(unsigned(out_port(6 downto 0)));
+          when "110" =>
+            result_addr <= out_port(6 downto 0);
+          when others =>
+            write_to_uart_tx <= '0';
         end case;
       else
         write_to_uart_tx <= '0';
       end if;
-      if k_write_strobe = '1' then
-        if port_id(0) = '1' then
-          uart_tx_reset <= out_port(0);
-          uart_rx_reset <= out_port(1);
-        end if;
-      end if;
     end if;
   end process output_ports;
+
+  k_output_ports : process(clk)
+  begin
+    if rising_edge(clk) then
+      if k_write_strobe = '1' then
+        case port_id(1 downto 0) is
+          when "00" =>
+            uart_tx_reset <= out_port(0);
+            uart_rx_reset <= out_port(1);
+          when others =>
+        end case;
+      end if;
+    end if;
+  end process k_output_ports;
 
 end architecture;  -- arch
