@@ -11,3 +11,5 @@ ip/ram_result/ram_result
 ip/**/tmp
 ip/**/_xmsgs
 ip/**/xlnx_auto_0_xdb
+assembler/*.txt
+assembler/*.txt

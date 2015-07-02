@@ -1,2 +1,84 @@
+;
+; Constantes definiendo puertos de entrada / salida
+;
+CONSTANT	UART_STATE,				00
+CONSTANT	UART_READ,				01
+CONSTANT	UART_CONTROL,			00
+CONSTANT	UART_WRITE,				01
+CONSTANT	ENC_PROCESSED_BYTES,	02
+CONSTANT	ENC_RESULT_READ,		03
+CONSTANT	ENC_CONTROL,			02
+CONSTANT	ENC_BUFFER_ADDRESS,		03
+CONSTANT	ENC_BUFFER_WRITE,		04
+CONSTANT	ENC_BYTES_TO_PROCESS,	05
+CONSTANT	ENC_RESULT_ADDRESS,		06
+
+;
+; Constantes de control del encoder
+;
+COSTANT 	ENC_RESET_MASK			01
+COSTANT 	ENC_WE_MASK				02
+
+
+;
+; Punto de entrada al programa
+;
 main:
-	JUMP main
+	;
+	; Reset del encoder
+	;
+	load 	s2, ENC_RESET_MASK
+	output 	s2, ENC_CONTROL
+	test s1, 11
+
+	;
+	; Habilitar escritura en el encoder
+	;
+	load 	s2, ENC_WE_MASK
+	output 	s2, ENC_CONTROL
+
+	; poner a cero el contador de direcciones
+	xor 	s1, s1
+
+	; escribir algo
+	load 	s2, "H"
+	output 	s1, ENC_BUFFER_ADDRESS
+	output 	s2, ENC_BUFFER_WRITE
+	add 	s1, 01
+
+	load 	s2, "o"
+	output 	s1, ENC_BUFFER_ADDRESS
+	output 	s2, ENC_BUFFER_WRITE
+	add 	s1, 01
+
+	load 	s2, "l"
+	output 	s1, ENC_BUFFER_ADDRESS
+	output 	s2, ENC_BUFFER_WRITE
+	add 	s1, 01
+
+	load 	s2, "a"
+	output 	s1, ENC_BUFFER_ADDRESS
+	output 	s2, ENC_BUFFER_WRITE
+	add 	s1, 01
+
+	; habilitar al encoder indicando cantidad de bytes a procesar
+	output 	s1, ENC_BYTES_TO_PROCESS
+	enable interrupt
+
+	; loop infinito luego de haber procesado
+loop:
+	jump loop
+
+;
+; Rutina de atención de interrupciones
+;
+isr:
+	load s3, "A"
+	input s4, ENC_PROCESSED_BYTES
+	returni enable
+
+;
+; Vector de interrupciones
+;
+ADDRESS		7FF
+	jump 	isr
