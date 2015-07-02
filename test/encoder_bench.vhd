@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 use work.txt_util.all;
 
 entity encoder_bench is
@@ -31,8 +32,8 @@ architecture arch of encoder_bench is
   signal buff_data        : std_logic_vector(7 downto 0);
   signal result_addr      : std_logic_vector(6 downto 0);
   signal result_data      : std_logic_vector(7 downto 0);
-  signal bytes_to_process : natural range 0 to 63;
-  signal processed_bytes  : natural range 0 to 90;
+  signal bytes_to_process : natural range 1 to 64;
+  signal processed_bytes  : natural range 1 to 90;
   signal processed        : std_logic := '0';
 begin
   buff : encoder
@@ -58,59 +59,74 @@ begin
   end process clock;
 
   estimulo : process
-    constant cadena : string := "01234";
+    -- Al dejar todo lo generado en ${project}/build tengo que poner
+    -- el path del archivo de datos relativo a dicho directorio.
+    file f                : text open read_mode is "../test/pruebas.txt";
+    variable to_encode    : string(1 to 65);
+    variable comprobation : string(1 to 128);
+    variable counter      : natural range 0 to 128 := 0;
   begin
-    result_addr <= std_logic_vector(to_unsigned(89, result_addr'length));
+    --
+    -- Itero todo el contenido del archivo
+    -- @TODO: soportar comentarios a lo bash, con "#"
+    -- 
+    -- Espera que el archivo tenga pares de línea, una con el contenido a encodear
+    -- y otra con el base64 para comprobar.  Como tiene que ser de ancho fijo
+    -- delimito la cadena con un ".", que pasa a ser caracter no permitido para
+    -- hacer pruebas...
+    --
+    while not endfile(f) loop
+      str_read(f, to_encode);
+      str_read(f, comprobation);
 
-    --
-    -- Reset del device
-    --
-    wait until rising_edge(clk);
-    rst <= '1';
-    wait until rising_edge(clk);
-    rst <= '0';
-
-    --
-    -- Primer ciclo de escritura
-    --
-    we <= '1';
-    for i in 1 to cadena'length loop
-      buff_addr <= std_logic_vector(to_unsigned(i-1, buff_addr'length));
-      buff_data <= std_logic_vector(to_unsigned(character'pos(cadena(i)), buff_data'length));
+      --
+      -- Reset del device
+      --
       wait until rising_edge(clk);
-    end loop;
-
-    buff_addr <= (others => '-');
-    buff_data <= (others => '-');
-    we        <= '0';
-
-    --
-    -- Indico que procese los bytes escritors
-    --
-    bytes_to_process <= cadena'length;
-
-    --
-    -- Espero a que se hayan procesado los datos
-    --
-    wait until processed'event and processed = '1';
-
-    --
-    -- Se leen los datos procesados
-    --
-    wait until clk'event and clk = '0';
-    for i in 0 to 90 loop
-      exit when i = processed_bytes;
-      result_addr <= std_logic_vector(to_unsigned(i, result_addr'length));
+      rst <= '1';
       wait until rising_edge(clk);
-      --assert false                      --to_char(result_data) = cadena(i+1)
-      --  report "Comparando <" & cadena(i+1) & "> con <" & to_char(result_data) & ">"
-      --  severity note;                  --failure;
+      rst <= '0';
+
+      -- informar cadena a codificar
+      assert false
+        report "####### Codificando en base64: <" & to_encode & ">"
+        severity note;
+
+      we      <= '1';
+      counter := 0;
+      for i in 1 to to_encode'length loop
+        exit when character'pos(to_encode(i)) = character'pos('.');
+
+        buff_addr <= std_logic_vector(to_unsigned(i-1, buff_addr'length));
+        buff_data <= std_logic_vector(to_unsigned(character'pos(to_encode(i)), 8));
+        counter   := counter + 1;
+        wait until rising_edge(clk);
+      end loop;
+
+      buff_addr        <= (others => '-');
+      buff_data        <= (others => '-');
+      we               <= '0';
+      bytes_to_process <= counter;
+      wait until processed'event and processed = '1';
+
+      wait until clk'event and clk = '0';
+      for j in 0 to 90 loop
+        exit when j = processed_bytes;
+        result_addr <= std_logic_vector(to_unsigned(j, result_addr'length));
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+        assert to_char(result_data) = comprobation(j+1)
+          report "##Error al comparar <" & comprobation(j+1) & "> con <" & to_char(result_data) & ">"
+          severity failure;
+      end loop;
+      result_addr <= (others => '-');
+      wait until rising_edge(clk);
+
     end loop;
-    result_addr <= (others => '-');
-    wait until rising_edge(clk);
 
     report "### Test finalizado exitosamente";
     -- Detengo la simulacin
     clk_en <= '0';
+    wait;
   end process estimulo;
 end architecture;

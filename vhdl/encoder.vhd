@@ -11,8 +11,8 @@ entity encoder is
     din              : in  std_logic_vector(7 downto 0);
     aout             : in  std_logic_vector(6 downto 0);
     dout             : out std_logic_vector(7 downto 0);
-    bytes_to_process : in  natural range 0 to 63;
-    processed_bytes  : out natural range 0 to 90;
+    bytes_to_process : in  natural range 1 to 64;
+    processed_bytes  : out natural range 1 to 90;
     ready            : out std_logic);
 end entity;
 
@@ -51,7 +51,7 @@ architecture arch of encoder is
   --
   -- Estados de la FSM
   --
-  type state is (idle, reading, processing, waiting, padding, ending);
+  type state is (idle, readb, encodeb, padding, ending);
   signal current : state;
 
   --
@@ -83,8 +83,8 @@ architecture arch of encoder is
 
   -- Señales internas al encoder
   signal start   : std_logic;
-  signal count_a : natural range 0 to 63;
-  signal count_r : natural range 0 to 90;
+  signal count_a : natural range 0 to 64;
+  signal count_r : natural range 0 to 89;
 
 begin
   enc : b64_encoder port map (
@@ -118,74 +118,72 @@ begin
   process(rst, clk)
   begin
     if rst = '1' then
-      ready <= '0';
+      ready      <= '0';
+      b64_we     <= '0';
+      b64_en     <= '0';
+      b64_rst    <= '1';
+      buff_addrb <= (others => '-');
+      current    <= idle;
+
     elsif clk'event and clk = '1' then
       case current is
         when idle =>
           if start = '1' then
-            result_we <= "0";
-            b64_we    <= '1';
-            b64_en    <= '1';
-            b64_rst   <= '0';
-            count_a   <= 0;
-            current   <= reading;
+            b64_we  <= '0';
+            b64_en  <= '1';
+            b64_rst <= '0';
+            count_a <= 0;
+            count_r <= 0;
+            current <= readb;
           else
-            result_we <= "0";
-            b64_we    <= '0';
-            b64_en    <= '0';
-            b64_rst   <= '1';
-            current   <= idle;
-          end if;
-
-        when reading =>
-          if count_a = bytes_to_process then
-            b64_we <= '1';
-            result_we <= "1";
-            current <= padding;
-          else
-            b64_rst    <= '0';
             b64_we     <= '0';
-            result_we  <= "0";
-            buff_addrb <= std_logic_vector(to_unsigned(count_a, buff_addrb'length));
-            current    <= processing;
+            b64_en     <= '0';
+            b64_rst    <= '1';
+            buff_addrb <= (others => '-');
+            current    <= idle;
           end if;
 
-        when processing =>
-          result_we    <= "1";
-          b64_we       <= '1';
-          result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
-          count_r      <= count_r + 1;
-          current      <= waiting;
+        when readb =>
+          b64_rst <= '0';
+          b64_we  <= '1';
 
-        when waiting =>
-          b64_we <= '0';
-          if b64_busy = '0' then
-            count_a   <= count_a + 1;
-            current   <= reading;
+          if count_a < bytes_to_process then
+            if b64_busy = '0' then
+              buff_addrb <= std_logic_vector(to_unsigned(count_a, buff_addrb'length));
+              count_a    <= count_a + 1;
+              b64_we     <= '1';
+            end if;
             result_we <= "0";
+            current   <= encodeb;
           else
-            result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
-            count_r      <= count_r + 1;
-            result_we <= "1";
-            current      <= waiting;
+            current <= padding;
           end if;
+
+        when encodeb =>
+          b64_we       <= '0';
+          result_we    <= "1";
+          result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
+          count_r      <= count_r+1;
+          current      <= readb;
 
         when padding =>
-          b64_en       <= '0';
+          b64_en <= '0';
           if b64_ready = '1' then
             current <= ending;
           else
             result_we    <= "1";
-            b64_we       <= '1';
             result_addra <= std_logic_vector(to_unsigned(count_r, result_addra'length));
-            count_r      <= count_r + 1;
+            count_r      <= count_r+1;
             current      <= padding;
           end if;
+
+
         when ending =>
-          result_we       <= "0";
           processed_bytes <= count_r-1;
           ready           <= '1';
           current         <= idle;
+
+        when others =>
       end case;
 
     end if;

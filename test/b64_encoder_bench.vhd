@@ -58,7 +58,7 @@ begin
   estimulo : process
     -- Al dejar todo lo generado en ${project}/build tengo que poner
     -- el path del archivo de datos relativo a dicho directorio.
-    file f                : text open read_mode is "../vhdl/pruebas.txt";
+    file f                : text open read_mode is "../test/pruebas.txt";
     variable to_encode    : string(1 to 65);
     variable result       : string(1 to 129);
     variable comprobation : string(1 to 128);

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/sebas/Develop/fpga/b64_encoder/build/encoder_bench_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="b64_utils" />
+            <top_module name="encoder_bench" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_textio" />
+            <top_module name="std_logic_unsigned" />
+            <top_module name="textio" />
+            <top_module name="txt_util" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="16" />
+   <wvobject fp_name="/encoder_bench/rst" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/bytes_to_process" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">bytes_to_process</obj_property>
+      <obj_property name="ObjectShortName">bytes_to_process</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/processed_bytes" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">processed_bytes</obj_property>
+      <obj_property name="ObjectShortName">processed_bytes</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/processed" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">processed</obj_property>
+      <obj_property name="ObjectShortName">processed</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/period" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">period</obj_property>
+      <obj_property name="ObjectShortName">period</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/b64_din" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_din[7:0]</obj_property>
+      <obj_property name="ObjectShortName">b64_din[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/b64_dout" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_dout[7:0]</obj_property>
+      <obj_property name="ObjectShortName">b64_dout[7:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/enc/prev" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">prev[5:0]</obj_property>
+      <obj_property name="ObjectShortName">prev[5:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/enc/pr_state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">pr_state</obj_property>
+      <obj_property name="ObjectShortName">pr_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/b64_we" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_we</obj_property>
+      <obj_property name="ObjectShortName">b64_we</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/b64_busy" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_busy</obj_property>
+      <obj_property name="ObjectShortName">b64_busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/current" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">current</obj_property>
+      <obj_property name="ObjectShortName">current</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/result_addrb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">result_addrb[6:0]</obj_property>
+      <obj_property name="ObjectShortName">result_addrb[6:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/buff_addrb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">buff_addrb[5:0]</obj_property>
+      <obj_property name="ObjectShortName">buff_addrb[5:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/encoder_bench/buff/b64_en" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b64_en</obj_property>
+      <obj_property name="ObjectShortName">b64_en</obj_property>
+   </wvobject>
+</wave_config>

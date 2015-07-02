@@ -57,16 +57,10 @@ begin
           nx_state <= idle;
         end if;
       when read1 =>
-        if en = '0' then
-          ready    <= '1';
-          nx_state <= idle;
-          dout     <= (others => '-');
-        else
-          ready    <= '0';
-          nx_state <= read2;
-          dout     <= to_b64(din(7 downto 2));
-        end if;
-        busy <= '0';
+        ready    <= '0';
+        nx_state <= read2;
+        dout     <= to_b64(din(7 downto 2));
+        busy     <= '0';
       when read2 =>
         if en = '0' then
           ready    <= '0';
