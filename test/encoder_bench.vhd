@@ -36,7 +36,7 @@ architecture arch of encoder_bench is
   signal processed_bytes  : natural range 1 to 90;
   signal processed        : std_logic := '0';
 begin
-  buff : encoder
+  enc : encoder
     port map (
       clk              => clk,
       rst              => rst,

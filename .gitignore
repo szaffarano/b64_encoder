@@ -4,6 +4,7 @@
 **/*.log
 **/*.hex
 **/*.fmt
+ip/dcm_50mhz/dcm_50mhz
 ip/ram_buffer/ram_buffer
 ip/ram_result/ram_result
 ip/**/tmp
