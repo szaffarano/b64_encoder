@@ -59,7 +59,7 @@ architecture arch of pico_encoder is
   component pico_encoder_rom
     generic(
       C_FAMILY             : string  := "7S";
-      C_RAM_SIZE_KWORDS    : integer := 1;
+      C_RAM_SIZE_KWORDS    : integer := 2;
       C_JTAG_LOADER_ENABLE : integer := 0);
     port (
       address     : in  std_logic_vector(11 downto 0);
@@ -313,9 +313,9 @@ begin
     if rising_edge(clk) then
       if write_strobe = '1' then
         case port_id(2 downto 0) is
-          when "001" =>
-            uart_tx_data_in  <= out_port;
-            write_to_uart_tx <= '1';
+--          when "001" =>
+--            uart_tx_data_in  <= out_port;
+--            write_to_uart_tx <= '1';
           when "010" =>
             rst <= out_port(0);
             we  <= out_port(1);
@@ -328,27 +328,32 @@ begin
           when "110" =>
             result_addr <= out_port(6 downto 0);
           when others =>
-            write_to_uart_tx <= '0';
+          --  write_to_uart_tx <= '0';
         end case;
-      else
-        write_to_uart_tx <= '0';
+      --else
+       -- write_to_uart_tx <= '0';
       end if;
     end if;
   end process output_ports;
 
-  k_output_ports : process(clk)
+  uart_tx_data_in <= out_port;
+  write_to_uart_tx  <= '1' when (write_strobe = '1') and (port_id(2 downto 0) = "001")
+                           else '0';                     
+
+  -- Reset de la uart, también por puerto 1
+  constant_output_ports : process(clk)
   begin
-    if rising_edge(clk) then
+    if clk'event and clk = '1' then
       if k_write_strobe = '1' then
-        case port_id(1 downto 0) is
-          when "00" =>
-            uart_tx_reset <= out_port(0);
-            uart_rx_reset <= out_port(1);
-          when others =>
-        end case;
+
+        if port_id(0) = '1' then
+          uart_tx_reset <= out_port(0);
+          uart_rx_reset <= out_port(1);
+        end if;
+
       end if;
     end if;
-  end process k_output_ports;
+  end process constant_output_ports;
 
   --
   -- Manejo de interrupt e interrupt_ack por "closed loop"
