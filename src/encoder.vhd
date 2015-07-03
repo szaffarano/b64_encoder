@@ -11,8 +11,8 @@ entity encoder is
     din              : in  std_logic_vector(7 downto 0);
     aout             : in  std_logic_vector(6 downto 0);
     dout             : out std_logic_vector(7 downto 0);
-    bytes_to_process : in  natural range 1 to 64;
-    processed_bytes  : out natural range 1 to 90;
+    bytes_to_process : in  std_logic_vector(6 downto 0);
+    processed_bytes  : out std_logic_vector(6 downto 0);
     ready            : out std_logic);
 end entity;
 
@@ -83,8 +83,9 @@ architecture arch of encoder is
 
   -- Señales internas al encoder
   signal start   : std_logic;
-  signal count_a : natural range 0 to 64;
+  signal count_a : natural range 0 to 63;
   signal count_r : natural range 0 to 89;
+  signal prev_value : std_logic_vector(6 downto 0);
 
 begin
   enc : b64_encoder port map (
@@ -147,7 +148,7 @@ begin
           b64_rst <= '0';
           b64_we  <= '1';
 
-          if count_a < bytes_to_process then
+          if count_a < to_integer(unsigned(bytes_to_process)) then
             if b64_busy = '0' then
               buff_addrb <= std_logic_vector(to_unsigned(count_a, buff_addrb'length));
               count_a    <= count_a + 1;
@@ -178,7 +179,7 @@ begin
           end if;
 
         when ending =>
-          processed_bytes <= count_r-1;
+          processed_bytes <= std_logic_vector(to_unsigned(count_r-1, processed_bytes'length));
           ready           <= '1';
           current         <= idle;
 
@@ -189,17 +190,16 @@ begin
   end process;
 
   process (clk, rst)
-    variable prev_value : natural range 1 to 64;
   begin
     if rst = '1' then
       start <= '0';
     elsif clk'event and clk = '1' then
-      if prev_value /= bytes_to_process then
+      if prev_value /= bytes_to_process and to_integer(unsigned(bytes_to_process)) > 0 then
         start <= '1';
       else
         start <= '0';
       end if;
-      prev_value := bytes_to_process;
+      prev_value <= bytes_to_process;
     end if;
   end process;
 

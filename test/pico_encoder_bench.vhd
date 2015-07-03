@@ -8,7 +8,7 @@ entity pico_encoder_bench is
 end entity;
 
 architecture bench of pico_encoder_bench is
-  constant period : time := 10 ns;
+  constant period : time := 20 ns;
 
   component pico_encoder is
     port (

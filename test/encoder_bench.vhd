@@ -19,8 +19,8 @@ architecture arch of encoder_bench is
       din              : in  std_logic_vector(7 downto 0);
       aout             : in  std_logic_vector(6 downto 0);
       dout             : out std_logic_vector(7 downto 0);
-      bytes_to_process : in  natural range 0 to 63;
-      processed_bytes  : out natural range 0 to 90;
+      bytes_to_process : in  std_logic_vector(6 downto 0);
+      processed_bytes  : out std_logic_vector(6 downto 0);
       ready            : out std_logic);
   end component;
 
@@ -32,8 +32,8 @@ architecture arch of encoder_bench is
   signal buff_data        : std_logic_vector(7 downto 0);
   signal result_addr      : std_logic_vector(6 downto 0);
   signal result_data      : std_logic_vector(7 downto 0);
-  signal bytes_to_process : natural range 1 to 64;
-  signal processed_bytes  : natural range 1 to 90;
+  signal bytes_to_process : std_logic_vector(6 downto 0);
+  signal processed_bytes  : std_logic_vector(6 downto 0);
   signal processed        : std_logic := '0';
 begin
   enc : encoder
@@ -83,6 +83,7 @@ begin
       -- Reset del device
       --
       wait until rising_edge(clk);
+      bytes_to_process <= "0000000";
       rst <= '1';
       wait until rising_edge(clk);
       rst <= '0';
@@ -106,12 +107,12 @@ begin
       buff_addr        <= (others => '-');
       buff_data        <= (others => '-');
       we               <= '0';
-      bytes_to_process <= counter;
+      bytes_to_process <= std_logic_vector(to_unsigned(counter, bytes_to_process'length));
       wait until processed'event and processed = '1';
 
       wait until clk'event and clk = '0';
       for j in 0 to 90 loop
-        exit when j = processed_bytes;
+        exit when j = unsigned(processed_bytes);
         result_addr <= std_logic_vector(to_unsigned(j, result_addr'length));
         wait until rising_edge(clk);
         wait until rising_edge(clk);

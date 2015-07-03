@@ -27,8 +27,8 @@ architecture arch of pico_encoder is
       din              : in  std_logic_vector(7 downto 0);
       aout             : in  std_logic_vector(6 downto 0);
       dout             : out std_logic_vector(7 downto 0);
-      bytes_to_process : in  natural range 1 to 64;
-      processed_bytes  : out natural range 1 to 90;
+      bytes_to_process : in  std_logic_vector(6 downto 0);
+      processed_bytes  : out std_logic_vector(6 downto 0);
       ready            : out std_logic);
   end component;
 
@@ -114,8 +114,8 @@ architecture arch of pico_encoder is
   signal buff_data        : std_logic_vector(7 downto 0);
   signal result_addr      : std_logic_vector(6 downto 0);
   signal result_data      : std_logic_vector(7 downto 0);
-  signal bytes_to_process : natural range 1 to 64;
-  signal processed_bytes  : natural range 1 to 90;
+  signal bytes_to_process : std_logic_vector(6 downto 0);
+  signal processed_bytes  : std_logic_vector(6 downto 0);
   signal processed        : std_logic := '0';
 
   -- Clock a 50Mhz
@@ -285,7 +285,7 @@ begin
           in_port <= uart_rx_data_out;
 
         when "10" =>
-          in_port <= std_logic_vector(to_unsigned(processed_bytes, in_port'length));
+          in_port <= "0" & processed_bytes;
 
         when "11" =>
           in_port <= result_data;
@@ -324,7 +324,7 @@ begin
           when "100" =>
             buff_data <= out_port;
           when "101" =>
-            bytes_to_process <= to_integer(unsigned(out_port(6 downto 0)));
+            bytes_to_process <= out_port(6 downto 0);
           when "110" =>
             result_addr <= out_port(6 downto 0);
           when others =>
