@@ -1,0 +1,62 @@
+; ****************************************************************************
+; Realiza un delay de 1 segundo
+; Calculo del delay "por soft":
+; reloj: 50 Mhz
+; cada instrucción: 2 ciclos
+; invocaciones: 
+; delay_1s  = 1 (call) + 3 (inicializacion) + 1(return) 
+;           = 5 x 2 ciclos = 10 ciclos
+; delay_loop = 3 subs + 1 jump condicional = 4 x 2 ciclos = 8
+;
+; Formula: (50.000.000 - 10) / 8 = 6249998,75 = 0x5F5E0E
+;--------------------------------------------------------------
+delay_1s: 
+            LOAD s2, 5F
+            LOAD s1, 5E
+            LOAD s0, 0E
+delay_loop: 
+            SUB s0, 1'd
+            SUBCY s1, 0'd
+            SUBCY s2, 0'd
+            JUMP NZ, delay_loop
+            RETURN 
+
+; ****************************************************************************
+; Resetea la UART
+; ****************************************************************************
+uart_reset:
+	outputk UART_TX_RESET_MASK, UART_CONTROL
+	outputk UART_RX_RESET_MASK, UART_CONTROL
+	return
+
+
+; ****************************************************************************
+; Transmite un byte por la UART.  Recibe el dato a transmitir en el registro
+; S5 y en el caso que el buffer tx esté lleno se queda esperando a que se
+; libere para realizar la transmisión.
+; ****************************************************************************
+uart_tx: 
+	INPUT 	s0,	UART_STATUS
+	TEST 	s0,	UART_TX_FULL_MASK
+	JUMP 	NZ, uart_tx
+	OUTPUT 	s5, UART_WRITE
+	RETURN 
+
+; ****************************************************************************
+; Recibe un byte por la UART.  Si no llega a haber datos para leer, entonces
+; espera 2004 ciclos (6 instrucciones x 2 ciclos por instruccion) * 167
+; Pasado el timeout, si sigue el buffer rx vacío, setea Z=1 y sale, si hay
+; datos, deja el byte leido en C5 y setea Z=0
+; ****************************************************************************
+uart_rx: 
+	LOAD s1, 167'd 				; EL 167 es arbitrario, ver comentario arriba.
+rx_timeout: 
+	INPUT s0, UART_STATUS
+	TEST s0, UART_RX_DATA_PRESENT_MASK
+	JUMP NZ, read_rx
+	SUB s1, 1'd
+	RETURN Z
+	JUMP rx_timeout
+read_rx: 
+	INPUT s5, UART_READ
+	RETURN 

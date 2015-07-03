@@ -1,7 +1,7 @@
 ;
 ; Constantes definiendo puertos de entrada / salida
 ;
-CONSTANT	UART_STATE,				00
+CONSTANT	UART_STATUS,			00
 CONSTANT	UART_READ,				01
 CONSTANT	UART_CONTROL,			00
 CONSTANT	UART_WRITE,				01
@@ -16,69 +16,114 @@ CONSTANT	ENC_RESULT_ADDRESS,		06
 ;
 ; Constantes de control del encoder
 ;
-COSTANT 	ENC_RESET_MASK			01
-COSTANT 	ENC_WE_MASK				02
+CONSTANT 	ENC_RESET_MASK,			00000001'b
+CONSTANT 	ENC_WE_MASK,			00000010'b
 
+;
+; Constantes de estado de la UART 
+;
+CONSTANT UART_TX_DATA_PRESENT_MASK, 00000001'b
+CONSTANT UART_TX_HALF_FULL_MASK, 	00000010'b
+CONSTANT UART_TX_FULL_MASK, 		00000100'b
+CONSTANT UART_TX_RESET_MASK, 		00000000'b
+CONSTANT UART_RX_DATA_PRESENT_MASK,	00001000'b
+CONSTANT UART_RX_HALF_FULL_MASK, 	00010000'b
+CONSTANT UART_RX_FULL_MASK, 		00100000'b
+CONSTANT UART_RX_RESET_MASK, 		00000010'b
+
+NAMEREG	sA, COUNTER
+NAMEREG	sB, PROCESSED_BYTES
+NAMEREG sC, TMP
+NAMEREG sD, COUNTER2
 
 ;
 ; Punto de entrada al programa
 ;
 main:
-	;
-	; Reset del encoder
-	;
-	load 	s2, ENC_RESET_MASK
-	output 	s2, ENC_CONTROL
-	test s1, 11
+	call 	uart_reset
 
-	;
-	; Habilitar escritura en el encoder
-	;
-	load 	s2, ENC_WE_MASK
-	output 	s2, ENC_CONTROL
+	enable 	interrupt
 
-	; poner a cero el contador de direcciones
-	xor 	s1, s1
+	load 	TMP, ENC_RESET_MASK
+	output 	TMP, ENC_CONTROL
+	test 	TMP, 11
 
-	; escribir algo
-	load 	s2, "H"
-	output 	s1, ENC_BUFFER_ADDRESS
-	output 	s2, ENC_BUFFER_WRITE
-	add 	s1, 01
+	load 	TMP, ENC_WE_MASK
+	output 	TMP, ENC_CONTROL
 
-	load 	s2, "o"
-	output 	s1, ENC_BUFFER_ADDRESS
-	output 	s2, ENC_BUFFER_WRITE
-	add 	s1, 01
+process:
+	xor		COUNTER, COUNTER
 
-	load 	s2, "l"
-	output 	s1, ENC_BUFFER_ADDRESS
-	output 	s2, ENC_BUFFER_WRITE
-	add 	s1, 01
+	LOAD 	s5, "B"
+	call uart_tx
+	LOAD 	s5, "6"
+	call uart_tx
+	LOAD 	s5, "4"
+	call uart_tx
+	LOAD 	s5, ">"
+	call uart_tx
+	LOAD 	s5, " "
+	call uart_tx
 
-	load 	s2, "a"
-	output 	s1, ENC_BUFFER_ADDRESS
-	output 	s2, ENC_BUFFER_WRITE
-	add 	s1, 01
+readkey:
+	CALL uart_rx
+	JUMP Z, readkey
+	compare s5, 13'd
+	JUMP NZ, echo
+encode:
+	load s5, 10'd
+	call uart_tx
+	load s5, 13'd
+	call uart_tx
 
-	; habilitar al encoder indicando cantidad de bytes a procesar
-	output 	s1, ENC_BYTES_TO_PROCESS
-	enable interrupt
+	output 	COUNTER, ENC_BYTES_TO_PROCESS
+	call 	delay_1s
 
-	; loop infinito luego de haber procesado
-loop:
-	jump loop
+	load s5, 10'd
+	call uart_tx
+	load s5, 13'd
+	call uart_tx
+
+	jump process
+echo:
+	output 	COUNTER, ENC_BUFFER_ADDRESS
+	output 	s5, ENC_BUFFER_WRITE
+	add 	COUNTER, 1'd
+
+	; hacer echo
+	CALL uart_tx
+    JUMP readkey
+
+INCLUDE "utils.psm"
 
 ;
 ; Rutina de atención de interrupciones
 ;
 isr:
-	load s3, "A"
-	input s4, ENC_PROCESSED_BYTES
-	returni enable
+	xor 	COUNTER2, COUNTER2
+	input 	PROCESSED_BYTES, ENC_PROCESSED_BYTES
+	
+	load 	s5, "<"
+	call 	uart_tx
+
+loopisr:
+	compare 	PROCESSED_BYTES, 0'd
+	jump 		NZ, print
+	load 		s5, ">"
+	call 		uart_tx
+	returni 	enable
+print:
+	output 		COUNTER2, ENC_RESULT_ADDRESS
+	compare		COUNTER2, 0'd 					; gano 2 ciclos, si no lea basura (¿?)
+	input 		s5, ENC_RESULT_READ
+	call 		uart_tx
+	add 		COUNTER2, 01
+	sub 		PROCESSED_BYTES, 01
+	jump 		loopisr
 
 ;
 ; Vector de interrupciones
 ;
 ADDRESS		7FF
 	jump 	isr
+
