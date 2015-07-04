@@ -43,16 +43,15 @@ main:
 	call 	uart_reset
 
 	enable 	interrupt
-
-	load 	TMP, ENC_RESET_MASK
-	output 	TMP, ENC_CONTROL
-	test 	TMP, 11
-
-	load 	TMP, ENC_WE_MASK
-	output 	TMP, ENC_CONTROL
-
 process:
+	call 	enc_reset
+
 	xor		COUNTER, COUNTER
+
+	load s5, 10'd
+	call uart_tx
+	load s5, 13'd
+	call uart_tx
 
 	LOAD 	s5, "B"
 	call uart_tx
@@ -70,6 +69,8 @@ readkey:
 	JUMP Z, readkey
 	compare s5, 13'd
 	JUMP NZ, echo
+	compare COUNTER, 0'd
+	JUMP Z, process
 encode:
 	load s5, 10'd
 	call uart_tx
@@ -78,11 +79,6 @@ encode:
 
 	output 	COUNTER, ENC_BYTES_TO_PROCESS
 	call 	delay_1s
-
-	load s5, 10'd
-	call uart_tx
-	load s5, 13'd
-	call uart_tx
 
 	jump process
 echo:
@@ -102,7 +98,7 @@ INCLUDE "utils.psm"
 isr:
 	xor 	COUNTER2, COUNTER2
 	input 	PROCESSED_BYTES, ENC_PROCESSED_BYTES
-	
+
 	load 	s5, "<"
 	call 	uart_tx
 

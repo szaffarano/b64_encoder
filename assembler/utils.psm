@@ -22,6 +22,28 @@ delay_loop:
             RETURN 
 
 ; ****************************************************************************
+; Resetea el encoder
+; ****************************************************************************
+enc_reset:
+	xor 	TMP, TMP
+	output	TMP, ENC_BYTES_TO_PROCESS
+	test 	TMP, TMP
+
+    load 	TMP, ENC_RESET_MASK
+    output 	TMP, ENC_CONTROL
+	test 	TMP, TMP
+    
+    xor 	TMP, TMP
+    output 	TMP, ENC_CONTROL
+	test 	TMP, TMP
+
+    load 	TMP, ENC_WE_MASK
+    output 	TMP, ENC_CONTROL
+	test 	TMP, TMP
+
+	return
+
+; ****************************************************************************
 ; Resetea la UART
 ; ****************************************************************************
 uart_reset:
