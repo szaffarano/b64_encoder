@@ -1,0 +1,15 @@
+# Site settings
+title: Codificador Base64 embebido
+email: sebas@zaffarano.com.ar
+description: >
+ Sistema embebido con PicoBlaze que utiliza un periférico codificador de Base64
+baseurl: "/b64_encoder"
+url: "http://szaffarano.docker.io/b64_encoder"
+highlighter: pygments
+twitter_username: SebaZaffarano
+github_username:  szaffarano
+
+# Build settings
+markdown: kramdown
+kramdown:
+   input: GFM
