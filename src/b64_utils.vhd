@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--
+-- Package con funciones utilitarias
+--
 package b64_utils is
   constant B64      : string := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   function to_b64(S : std_logic_vector) return std_logic_vector;

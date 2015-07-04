@@ -3,7 +3,7 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 ------------------------------------------------------------------------------
--- Definición de la entidad,sólo envia y recibe a través de la UART.
+-- Definición de la entidad, sólo envia y recibe a través de la UART.
 ------------------------------------------------------------------------------
 entity pico_encoder is
   port (
@@ -154,12 +154,13 @@ architecture arch of pico_encoder is
   signal uart_rx_full         : std_logic;
   signal uart_rx_reset        : std_logic;
 
-  -- Señal usada por el generador de baud rate
+  -- Señal usada por el generador de baud rate (ver
+  -- referencia de la UART dentro de kcpsm6)
   signal baud_rate_counter : integer range 0 to 26 := 0;
   signal en_16_x_baud      : std_logic             := '0';
 
 begin
-  -- Encoder
+  -- Instanciar el Encoder
   enc : encoder
     port map (
       clk              => clk,
@@ -175,7 +176,7 @@ begin
 
   -- PicoBlaze
   processor : kcpsm6
-    generic map (hwbuild                 => X"41",  -- 41 hex is ASCII Character "A"
+    generic map (hwbuild                 => X"41",
                  interrupt_vector        => X"7FF",
                  scratch_pad_memory_size => 64)
     port map(address        => address,
@@ -325,10 +326,8 @@ begin
           when b"110" =>
             result_addr <= out_port(6 downto 0);
           when others =>
-          --  write_to_uart_tx <= '0';
+          --  no se hace nada
         end case;
-      --else
-       -- write_to_uart_tx <= '0';
       end if;
     end if;
   end process output_ports;

@@ -2,6 +2,31 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--
+-- El periférico propiamente dicho.  Utiliza la entidad
+-- b64_encoder que es quien recibe los bytes como entrada
+-- y devuelve bytes codificados en base 64 como salida.
+--  clk: clock
+--  rst: reset
+--  we: cuando está en uno habilita la escritura en la 
+--      memoria buffer
+--  ain: dirección de la memoria buffer en donde se va a escribir 
+--  din: dato a escribir en la memoria buffer
+--  aout: dirección desde donde se va a leer en la memoria
+--        resultado
+--  dout: dato leido de la memoria resultado
+--  bytes_to_process: registro mediante el cual se le indica
+--                    al periférico cuántos bytes se desea
+--                    codificar.  Ni bien se escribe en este
+--                    puerto se comienza a codificar
+--  processed_bytes: el periférico indica en este registro
+--                   cuántos bytes ocupa el resultado de la
+--                   codificación.  Sólo tendrá un valor válido
+--                   una vez disparada la señal ready que indica
+--                   que se finalizó de codificar
+--  ready: se pone a uno por un ciclo de reloj, indicando que
+--         se termino de codificar
+--
 entity encoder is
   port (
     clk              : in  std_logic;
@@ -16,6 +41,9 @@ entity encoder is
     ready            : out std_logic);
 end entity;
 
+--
+-- Arquitectura con la implementación del encoder
+--
 architecture arch of encoder is
   component b64_encoder is
     port (
@@ -26,6 +54,8 @@ architecture arch of encoder is
       dout             : out std_logic_vector(7 downto 0));
   end component;
 
+  -- 
+  -- Memoria RAM para que el usuario escriba los datos a procesar
   component ram_buffer
     port (
       clka  : in  std_logic;
@@ -37,6 +67,10 @@ architecture arch of encoder is
       doutb : out std_logic_vector(7 downto 0));
   end component;
 
+  --
+  -- Memoria RAM donde se guardan los datos procesados y desde 
+  -- donde el usuario puede leerlos
+  --
   component ram_result
     port (
       clka  : in  std_logic;
@@ -88,6 +122,7 @@ architecture arch of encoder is
   signal prev_value : std_logic_vector(6 downto 0);
 
 begin
+  -- Instanciar b64_encoder
   enc : b64_encoder port map (
     clk   => clk,
     rst   => b64_rst,
@@ -98,6 +133,7 @@ begin
     ready => b64_ready,
     dout  => b64_dout);
 
+  -- Instanciar memorias
   buff : ram_buffer port map (
     clka  => clk,
     clkb  => clk,
@@ -106,7 +142,6 @@ begin
     dina  => buff_dina,
     addrb => buff_addrb,
     doutb => buff_doutb);
-
   result : ram_result port map (
     clka  => clk,
     clkb  => clk,
@@ -116,6 +151,12 @@ begin
     addrb => result_addrb,
     doutb => result_doutb);
 
+  --
+  -- Máquina de estados con la lógica de procesamiento.
+  -- Lee de la memoria buffer, habilita al encoder para
+  -- que procese y escribe en la memoria de resultado.
+  -- Cada 3 bytes procesados devuelve 4 y demora 6 ciclos
+  --
   process(rst, clk)
   begin
     if rst = '1' then
@@ -189,6 +230,10 @@ begin
     end if;
   end process;
 
+  --
+  -- Proceso para mantener el estado del registro
+  -- de bytes a procesar, utilizado como flag para
+  -- comenzar con el procesamiento
   process (clk, rst)
   begin
     if rst = '1' then

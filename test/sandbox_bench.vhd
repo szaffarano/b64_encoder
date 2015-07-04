@@ -5,6 +5,9 @@ use ieee.numeric_std.all;
 entity sandbox is
 end entity;
 
+--
+-- Pruebas con el componente de codificación...
+--
 architecture sandbox of sandbox is
   constant period : time := 10 ns;
 

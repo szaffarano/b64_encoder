@@ -7,6 +7,11 @@ use work.txt_util.all;
 entity encoder_bench is
 end entity;
 
+--
+-- Se lee el archivo pruebas.txt en donde la primera línea
+-- tiene un valor a encodear y la segunda el resultado para
+-- comprobarlo.  Falla si no matchea alguna comprobación
+--
 architecture arch of encoder_bench is
   constant PERIOD : time := 10 ns;
 

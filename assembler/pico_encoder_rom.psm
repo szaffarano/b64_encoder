@@ -31,6 +31,9 @@ CONSTANT UART_RX_HALF_FULL_MASK, 	00010000'b
 CONSTANT UART_RX_FULL_MASK, 		00100000'b
 CONSTANT UART_RX_RESET_MASK, 		00000010'b
 
+;
+; Alias para los registros
+;
 NAMEREG	sA, COUNTER
 NAMEREG	sB, PROCESSED_BYTES
 NAMEREG sC, TMP
@@ -40,19 +43,28 @@ NAMEREG sD, COUNTER2
 ; Punto de entrada al programa
 ;
 main:
+	; resetear la uart
 	call 	uart_reset
 
+	; habilitar interrupciones
 	enable 	interrupt
+
+; Inicia de loop infinito de interacción con el usuario (CLI)
 process:
+	; luego de cada ejecución se resetea el encoder
 	call 	enc_reset
 
+	; contador de bytes ingresados por el usuario, se pone
+	; a cero antes de cada ejecucipon
 	xor		COUNTER, COUNTER
 
+	; imprimir nueva línea para separar los datos (CR+CL)
 	load s5, 10'd
 	call uart_tx
 	load s5, 13'd
 	call uart_tx
 
+	; imprimir prompt de ingreso: "B64>"
 	LOAD 	s5, "B"
 	call uart_tx
 	LOAD 	s5, "6"
@@ -64,62 +76,119 @@ process:
 	LOAD 	s5, " "
 	call uart_tx
 
+; Lectura de una tecla
 readkey:
 	CALL uart_rx
 	JUMP Z, readkey
 	compare s5, 13'd
+	; si el usuario presionó ENTER se procesa
+	; si no presionó enter se hace un echo del caracter (ver
+	; mas abajo, además del echo se escribe en memoria)
 	JUMP NZ, echo
 	compare COUNTER, 0'd
+	; pero si presiona ENTER sin ingresar nada (comparo counter
+	; con cero), entonces regreso al loop de la CLI y no se
+	; procesa nada
 	JUMP Z, process
+
+; Lógica de codificación propiamente dicha.  En este punto se tiene
+; en la memoria del periférico todo lo que el usuario ingresó
 encode:
+	; por un tema de visualización se imprime una nueva línea
 	load s5, 10'd
 	call uart_tx
 	load s5, 13'd
 	call uart_tx
 
+	; Escribo en el puerto del periférico la cantidad de bytes
+	; a procesar (ver documentación del mismo para los valores y
+	; ver código VHDL para los mapeos entre la entidad pico_encoder
+	; y encoder)
 	output 	COUNTER, ENC_BYTES_TO_PROCESS
+
+	; Delay arbitrario para que la interrupción imprima el resultado
+	; antes de volver al comienzo del loop, asi se muestra en orden,
+	; primero el valor codificado y luego el prompt nuevamente.
 	call 	delay_1s
 
+	; una vez hecho todo, vuelvo al inicio del loop infinito
 	jump process
+
+; Cada caracter que ingresa el usuario se lo envía por la UART
+; para que lo pueda visualizar.  Además, se le escribe en la memoria
+; buffer del periférico
 echo:
+	; escribir en el buffer del encoder, ver documentación y mapeo
+	; de puertos de picoblaze y periférico.  Hay que escribir
+	; la dirección y luego el dato en sendos puertos del periférico
 	output 	COUNTER, ENC_BUFFER_ADDRESS
 	output 	s5, ENC_BUFFER_WRITE
+
+	; incrementar el contador, vale aclarar que el contador se usa
+	; como referencia de las posiciones de memoria donde se escribe
+	; (ver las lineas anteriores del echo)
 	add 	COUNTER, 1'd
 
-	; hacer echo
+	; hacer echo por la uart
 	CALL uart_tx
     JUMP readkey
 
+; incluye libreria con rutinas utils, para no hacer este archivo
+; demasiado largo
 INCLUDE "utils.psm"
 
 ;
 ; Rutina de atención de interrupciones
 ;
 isr:
+	; poner contador a cero
 	xor 	COUNTER2, COUNTER2
+
+	; leer la cantidad de bytes procesados
 	input 	PROCESSED_BYTES, ENC_PROCESSED_BYTES
 
+	; el resultado se imprime entre "<" y ">"
 	load 	s5, "<"
 	call 	uart_tx
 
+; se itera para ir leyendo de la memoria de resultado
+; del periférico y luego imprimir el valor
 loopisr:
+	; si aún hay bytes para leer...
 	compare 	PROCESSED_BYTES, 0'd
+	; ... imprimir de a un byte
 	jump 		NZ, print
+
+	; si ya no hay bytes cerrar los delimitadores
+	; del resultados y salir manteniendo habilitadas
+	; las interrupciones de picoblaze
 	load 		s5, ">"
 	call 		uart_tx
 	returni 	enable
+
+; se escribe la dirección de memoria de resultado a la cual
+; se quiere leer
 print:
 	output 		COUNTER2, ENC_RESULT_ADDRESS
-	compare		COUNTER2, 0'd 					; gano 2 ciclos, si no lea basura (¿?)
+	compare		COUNTER2, 0'd 					; gano 2 ciclos, si no lee basura (¿?)
+	; se lee del puerto del periférico la posición de memoria
+	; que se indicó previamente (ver documentación para los mapeos
+	; de puertos de picoblaze con el encoder)
 	input 		s5, ENC_RESULT_READ
+
+	; se imprime el caracter leido
 	call 		uart_tx
 	add 		COUNTER2, 01
 	sub 		PROCESSED_BYTES, 01
+
+	; itero para leer el próximo caracter o salir 
+	; si ya no hay nada más
 	jump 		loopisr
 
 ;
-; Vector de interrupciones
+; Vector de interrupciones, última posición del primer kb
+; de la rom de picoblaze.  Esto se puede parametrizar
+; con un generic en el vhdl.
 ;
 ADDRESS		7FF
 	jump 	isr
-
