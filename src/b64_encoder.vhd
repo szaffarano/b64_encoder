@@ -87,7 +87,7 @@ begin
         end if;
       when read4 =>
         if en = '0' then
-          ready    <= '1';
+          ready    <= '0';
           nx_state <= idle;
         else
           ready    <= '0';
