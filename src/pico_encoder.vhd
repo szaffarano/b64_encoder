@@ -313,19 +313,16 @@ begin
     if rising_edge(clk) then
       if write_strobe = '1' then
         case port_id(2 downto 0) is
---          when "001" =>
---            uart_tx_data_in  <= out_port;
---            write_to_uart_tx <= '1';
-          when "010" =>
+          when b"010" =>
             rst <= out_port(0);
             we  <= out_port(1);
-          when "011" =>
+          when b"011" =>
             buff_addr <= out_port(5 downto 0);
-          when "100" =>
+          when b"100" =>
             buff_data <= out_port;
-          when "101" =>
+          when b"101" =>
             bytes_to_process <= out_port(6 downto 0);
-          when "110" =>
+          when b"110" =>
             result_addr <= out_port(6 downto 0);
           when others =>
           --  write_to_uart_tx <= '0';
