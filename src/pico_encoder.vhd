@@ -3,7 +3,10 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 ------------------------------------------------------------------------------
--- Definición de la entidad, sólo envia y recibe a través de la UART.
+-- Definición de la entidad, sólo envia y recibe datos a través de la UART.
+-- El picoblaze implementa una command line interface (CLI) minimalista
+-- para interactuar por RS232 con el usuario, quien escribe los datos que
+-- quiere codificar en base64.
 ------------------------------------------------------------------------------
 entity pico_encoder is
   port (
@@ -17,6 +20,7 @@ architecture arch of pico_encoder is
   ------------------------------------------------------------------------------
   -- Componentes
   ------------------------------------------------------------------------------
+
   -- Encoder B64
   component encoder
     port (
@@ -202,9 +206,9 @@ begin
 
   -- Instanciar la ROM de PicoBlaze
   program_rom : pico_encoder_rom
-    generic map(C_FAMILY             => "7S",
-                C_RAM_SIZE_KWORDS    => 2,
-                C_JTAG_LOADER_ENABLE => 1)
+    generic map(C_FAMILY             => "7S", -- familia 7s, zynq7010
+                C_RAM_SIZE_KWORDS    => 2,    -- 2K de ram
+                C_JTAG_LOADER_ENABLE => 1)    -- jtag loader habilitado
     port map(address     => address,
              instruction => instruction,
              enable      => bram_enable,
@@ -291,7 +295,7 @@ begin
         when "11" =>
           in_port <= result_data;
 
-        when others => 
+        when others =>
           in_port <= "XXXXXXXX";
       end case;
 
@@ -326,15 +330,15 @@ begin
           when b"110" =>
             result_addr <= out_port(6 downto 0);
           when others =>
-          --  no se hace nada
+        --  no se hace nada
         end case;
       end if;
     end if;
   end process output_ports;
 
-  uart_tx_data_in <= out_port;
-  write_to_uart_tx  <= '1' when (write_strobe = '1') and (port_id(2 downto 0) = "001")
-                           else '0';                     
+  uart_tx_data_in  <= out_port;
+  write_to_uart_tx <= '1' when (write_strobe = '1') and (port_id(2 downto 0) = "001")
+                      else '0';
 
   -- Reset de la uart, también por puerto 1
   constant_output_ports : process(clk)

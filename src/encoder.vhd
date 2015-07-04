@@ -56,6 +56,7 @@ architecture arch of encoder is
 
   -- 
   -- Memoria RAM para que el usuario escriba los datos a procesar
+  --
   component ram_buffer
     port (
       clka  : in  std_logic;
@@ -116,9 +117,9 @@ architecture arch of encoder is
   signal result_we    : std_logic_vector(0 downto 0);
 
   -- Señales internas al encoder
-  signal start   : std_logic;
-  signal count_a : natural range 0 to 63;
-  signal count_r : natural range 0 to 89;
+  signal start      : std_logic;
+  signal count_a    : natural range 0 to 63;
+  signal count_r    : natural range 0 to 89;
   signal prev_value : std_logic_vector(6 downto 0);
 
 begin

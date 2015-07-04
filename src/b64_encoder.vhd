@@ -22,7 +22,9 @@ entity b64_encoder is
     dout             : out std_logic_vector(7 downto 0));
 end entity;
 
-
+--
+-- Arquitectura del encoder b64
+--
 architecture b64_encoder of b64_encoder is
   type state is (idle, read1, read2, read3, read4, pad_one_equal, pad_two_equals);
   signal pr_state, nx_state : state;
@@ -43,6 +45,9 @@ begin
 
   --
   -- Parte combinacional  / "upper section" de la FSM (ver [Pedroni 2010])
+  -- Hay 4 estados de lectura, los 3 primeros van leyendo bytes y en el cuarto
+  -- sólo procesa dejando el flag busy en uno para indicar que no lee.
+  -- Los últimos dos estados son para hacer padding con "=" de ser necesario
   --
   process(pr_state, din, en, prev)
   begin
@@ -58,51 +63,48 @@ begin
         end if;
       when read1 =>
         ready    <= '0';
-        nx_state <= read2;
         dout     <= to_b64(din(7 downto 2));
         busy     <= '0';
+        nx_state <= read2;
       when read2 =>
+        ready <= '0';
         if en = '0' then
-          ready    <= '0';
-          nx_state <= pad_two_equals;
           dout     <= to_b64(prev(1 downto 0) & "0000");
           busy     <= '1';
+          nx_state <= pad_two_equals;
         else
-          ready    <= '0';
-          nx_state <= read3;
           dout     <= to_b64(prev(1 downto 0) & din(7 downto 4));
           busy     <= '0';
+          nx_state <= read3;
         end if;
       when read3 =>
+        ready <= '0';
         if en = '0' then
-          ready    <= '0';
           dout     <= to_b64(prev(3 downto 0) & "00");
-          nx_state <= pad_one_equal;
           busy     <= '1';
+          nx_state <= pad_one_equal;
         else
-          ready    <= '0';
           dout     <= to_b64(prev(3 downto 0) & din(7 downto 6));
-          nx_state <= read4;
           busy     <= '0';
+          nx_state <= read4;
         end if;
       when read4 =>
+        ready <= '0';
+        dout  <= to_b64(prev(5 downto 0));
+        busy  <= '1';
         if en = '0' then
-          ready    <= '0';
           nx_state <= idle;
         else
-          ready    <= '0';
           nx_state <= read1;
         end if;
-        dout <= to_b64(prev(5 downto 0));
-        busy <= '1';
       when pad_two_equals =>
-        dout     <= std_logic_vector(to_unsigned(character'pos('='), 8));
         ready    <= '0';
+        dout     <= std_logic_vector(to_unsigned(character'pos('='), 8));
         busy     <= '1';
         nx_state <= pad_one_equal;
       when pad_one_equal =>
-        dout     <= std_logic_vector(to_unsigned(character'pos('='), 8));
         ready    <= '0';
+        dout     <= std_logic_vector(to_unsigned(character'pos('='), 8));
         busy     <= '0';
         nx_state <= idle;
     end case;
@@ -110,7 +112,7 @@ begin
 
   --
   -- Mantiene buffer de estado para compensar la asimetría entre
-  -- lectura y escritura-
+  -- lectura y escritura.  Con guardar los últimos 6 bits es suficiente.
   --
   process(clk, din, we)
   begin
