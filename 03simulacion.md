@@ -36,19 +36,19 @@ Como se mencionó antes, se corresponde a la cadena `ABCDEFGHIJKL`
 
 ### Primeros bytes
 
-{% include image.html src="/assets/sim/12bytes_1.png" width="80%" %}
+{% include image.html src="../assets/sim/12bytes_1.png" width="80%" %}
 
 ### Últimos bytes
 
-{% include image.html src="/assets/sim/12bytes_2.png" width="80%" %}
+{% include image.html src="../assets/sim/12bytes_2.png" width="80%" %}
 
 ### Memoria de datos de entrada
 
-{% include image.html src="/assets/mem/12_buffer.png" width="80%" %}
+{% include image.html src="../assets/mem/12_buffer.png" width="80%" %}
 
 ### Memoria de datos de salida
 
-{% include image.html src="/assets/mem/12_result.png" width="80%" %}
+{% include image.html src="../assets/mem/12_result.png" width="80%" %}
 
 ## Simulaciones del segundo caso
 
@@ -56,25 +56,25 @@ Como se mencionó antes, se corresponde a la cadena `ABCDEFGHIJKLM`
 
 ### Primeros bytes
 
-{% include image.html src="/assets/sim/13bytes_1.png" width="80%" %}
+{% include image.html src="../assets/sim/13bytes_1.png" width="80%" %}
 
 ### Comienzo del procesamiento
 
 Se puede ver que luego de indicarle la cantidad de bytes a (0x0d = 13'd), se empieza con el procesamiento propiamente dicho.
 
-{% include image.html src="/assets/sim/13bytes_proc.png" width="80%" %}
+{% include image.html src="../assets/sim/13bytes_proc.png" width="80%" %}
 
 ### Últimos bytes
 
-{% include image.html src="/assets/sim/13bytes_2.png" width="80%" %}
+{% include image.html src="../assets/sim/13bytes_2.png" width="80%" %}
 
 ### Memoria de datos de entrada
 
-{% include image.html src="/assets/mem/13_buffer.png" width="80%" %}
+{% include image.html src="../assets/mem/13_buffer.png" width="80%" %}
 
 ### Memoria de datos de salida
 
-{% include image.html src="/assets/mem/13_result.png" width="80%" %}
+{% include image.html src="../assets/mem/13_result.png" width="80%" %}
 
 
 ## Simulaciones del tercer caso
@@ -85,22 +85,22 @@ Como se mencionó antes, se corresponde a la cadena `ABCDEFGHIJKLMN`
 
 Ver la sección marcada en rojo, en donde se observa la transición de estados de la máquna de estado a medida que va procesando los bytes de entrada.  Hay una máquina de estados para el componente `b64_encoder` y otra para `encoder` (paramás información consultar el código fuente).
 
-{% include image.html src="/assets/sim/14bytes_1.png" width="80%" %}
+{% include image.html src="../assets/sim/14bytes_1.png" width="80%" %}
 
 ### Disparo de la señal de ready
 
 Observar que luego de procesar los datos de entrada se dispara la señal de `ready` indicando que ya están disponibles los bytes codificados.
 
-{% include image.html src="/assets/sim/14bytes_ready.png" width="80%" %}
+{% include image.html src="../assets/sim/14bytes_ready.png" width="80%" %}
 
 ### Últimos bytes
 
-{% include image.html src="/assets/sim/14bytes_2.png" width="80%" %}
+{% include image.html src="../assets/sim/14bytes_2.png" width="80%" %}
 
 ### Memoria de datos de entrada
 
-{% include image.html src="/assets/mem/14_buffer.png" width="80%" %}
+{% include image.html src="../assets/mem/14_buffer.png" width="80%" %}
 
 ### Memoria de datos de salida
 
-{% include image.html src="/assets/mem/14_result.png" width="80%" %}
+{% include image.html src="../assets/mem/14_result.png" width="80%" %}

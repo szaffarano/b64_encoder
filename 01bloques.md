@@ -26,7 +26,7 @@ end entity;
 
 Su funcionamiento consiste en recibir los bytes a través del puerto `din` y escribir los bytes codificados al puerto `dout`.  La señal `en` lo activa, de forma tal que al pasar a uno comenzará a procesar lo que lea de su entrada, y a la vez cuando `we` esté en uno leerá datos, caso contrario quedará en *standby* hasta que dicha señal vuelva a estar en uno.  Por último, como luego de finalizar la escritura de bytes (y por ende poner en cero la señal `en`) aún habrá bytes en el bus de salida (recordar que por cada 3 bytes de entrada el periférico "devuelve" cuatro), recién se dará por finalizada la codificación cuando la señal `ready` esté en uno.
 
-{% include image.html src="/assets/rtl/rtl4.png" width="30%" %}
+{% include image.html src="../assets/rtl/rtl4.png" width="30%" %}
 
 ## Encoder
 
@@ -52,7 +52,7 @@ Los dos bloques de memoria están implementados utilizando la IP [Block Memory G
 
 En el siguiente esquema se puede observar la interacción entre los componentes mencionados previamente:
 
-{% include image.html src="/assets/rtl/rtl3.png" width="100%" %}
+{% include image.html src="../assets/rtl/rtl3.png" width="100%" %}
 
 Para realizar una codificación hay que seguir una serie de pasos:
 
@@ -82,7 +82,7 @@ Observar que sólo expone registros para interactuar mediante una interfaz RS232
 
 El siguiente diagrama de bloques muestra cómo se relacionan los diversos componentes de la entidad:
 
-{% include image.html src="/assets/rtl/rtl2.png" width="100%" %}
+{% include image.html src="../assets/rtl/rtl2.png" width="100%" %}
 
 Notar que además del encoder, descrito en apartados anteriores, y el picoblaze propiamente dicho, componente `kcpsm6`, también se ve la ROM usada para almacenar el programa ensamblador usado para manejar el encoder y la UART.  También se ven los componentes de transmisión y recepción de la UART, `uart_tx6` y `uart_rx6` respectivamente.  Y por último también se observa un DCM, también generado a partir de la IP [LogiCore Clock Generator V3.6][dcm] provista por Xilinx, `dcm_50mhz`, usado para manejar el reloj interno de todos los componentes a 50 MHz.
 

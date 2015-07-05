@@ -6,9 +6,9 @@ Este proyecto implementa un codificador Base64 en VHDL, embebiéndole un microco
 
 Todas las pruebas de funcionalidad fueron validadas con una placa de desarrollo [Zybo][zybo].  Se puede ver la placa en funcionamiento, conectada a un conversor USB-RS232:
 
-{% include image.html src="/assets/zybo.jpg" width="60%" %}
+{% include image.html src="assets/zybo.jpg" width="60%" %}
 
-Referirse a la documentación dentro de esta página para conocer el funcionamiento del codificador, o bien descargar el código fuente del [repositorio git][repo].
+Referirse a la documentación dentro de esta página para conocer el funcionamiento del codificador, o bien descargar el código fuente del [repositorio git]({{ site.github.repository_url}}).
 
 A continuación un video que muestra el uso de la CLI desarrollada para PicoBlaze, codificando cadenas a Base64:
 
@@ -18,4 +18,3 @@ A continuación un video que muestra el uso de la CLI desarrollada para PicoBlaz
 
 [picoblaze]:      http://www.xilinx.com/products/intellectual-property/picoblaze.html
 [zybo]:           https://www.digilentinc.com/Products/Detail.cfm?Prod=ZYBO
-[repo]:           "{{ site.github.repository_url}}"
