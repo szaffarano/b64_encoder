@@ -104,3 +104,34 @@ Observar que luego de procesar los datos de entrada se dispara la señal de `rea
 ### Memoria de datos de salida
 
 {% include image.html src="../assets/mem/14_result.png" width="80%" %}
+
+## Simulaciones del cuarto caso
+
+### Memoria de datos de entrada
+
+{% include image.html src="../assets/mem/62_buffer.png" width="80%" %}
+
+### Memoria de datos de salida
+
+{% include image.html src="../assets/mem/62_result.png" width="80%" %}
+
+## Simulaciones del quinto caso
+
+### Memoria de datos de entrada
+
+{% include image.html src="../assets/mem/63_buffer.png" width="80%" %}
+
+### Memoria de datos de salida
+
+{% include image.html src="../assets/mem/63_result.png" width="80%" %}
+
+## Simulaciones del sexto caso
+
+### Memoria de datos de entrada
+
+{% include image.html src="../assets/mem/64_buffer.png" width="80%" %}
+
+### Memoria de datos de salida
+
+{% include image.html src="../assets/mem/64_result.png" width="80%" %}
+
